@@ -31,7 +31,9 @@ pipeline {
                 script {
                     if(isUnix() == true) {
                         // Compile Java app
-                        sh 'mvn clean package'
+                        withMaven {
+                            sh 'mvn clean package'
+                        }
                         //sh 'mvn -f app clean package'
                     }
                     //else {
