@@ -36,8 +36,8 @@ pipeline {
                             sh script:'''
                               #!/bin/bash
                               cd ./app
-                              sh 'ls -la'
-                              sh 'mvn clean package'
+                              ls -la
+                              mvn clean package
                             '''
                         }
                         //sh 'mvn -f app clean package'
