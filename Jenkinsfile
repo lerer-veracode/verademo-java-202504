@@ -17,6 +17,7 @@ pipeline {
                         sh 'pwd'
                         sh 'ls -la'
                         sh 'echo $PATH'
+                        sh 'echo $M2_HOME'
                     }
                     else {
                         bat 'dir'
@@ -31,7 +32,7 @@ pipeline {
                 script {
                     if(isUnix() == true) {
                         // Compile Java app
-                        withMaven {
+                        withMaven (traceability: true) {
                             sh 'mvn clean package'
                         }
                         //sh 'mvn -f app clean package'
