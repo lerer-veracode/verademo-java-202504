@@ -32,7 +32,7 @@ pipeline {
                 script {
                     if(isUnix() == true) {
                         // Compile Java app
-                        withMaven (traceability: true,maven: 'maven-3') {
+                        withMaven (traceability: true, maven: '3.9.10') {
                             sh 'mvn clean package'
                         }
                         //sh 'mvn -f app clean package'
