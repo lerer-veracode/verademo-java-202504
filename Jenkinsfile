@@ -33,7 +33,7 @@ pipeline {
                     if(isUnix() == true) {
                         // Compile Java app
                         withMaven (traceability: true, maven: '3.9.10') {
-                            sh 'cd app'
+                            sh 'cd ./app'
                             sh 'ls -la'
                             sh 'mvn clean package'
                         }
