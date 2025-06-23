@@ -28,16 +28,18 @@ pipeline {
 
         stage ('build') {
             steps {
-                withMaven(maven:'maven-3') {
-                    script {
-                        if(isUnix() == true) {
-                            sh 'mvn -f app clean package'
-                        }
-                        else {
-                            bat 'mvn -f app clean package'
-                        }
+                //withMaven(maven:'maven-3') {
+                script {
+                    if(isUnix() == true) {
+                        sh 'mvn clean package'
+                        //sh 'mvn -f app clean package'
+                    }
+                    else {
+                        bat 'mvn clean package'
+                        //bat 'mvn -f app clean package'
                     }
                 }
+               // }
             }
         }
 
