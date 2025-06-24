@@ -51,8 +51,11 @@ pipeline {
         }
 
         stage ('Coby Veracode Scan') {
-            withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
-                veracode applicationName: 'Verademo Java', createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/**.jar,**/target/*.war', vid: veracode_id, vkey: veracode_key
+            steps {
+                echo 'Coby Veracode scanning'
+                withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
+                    veracode applicationName: 'Verademo Java', createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/**.jar,**/target/*.war', vid: veracode_id, vkey: veracode_key
+                }
             }
         }
 
