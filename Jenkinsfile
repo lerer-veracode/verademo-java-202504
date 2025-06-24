@@ -50,16 +50,7 @@ pipeline {
             }
         }
 
-        stage ('Coby Veracode Scan') {
-            steps {
-                echo 'Coby Veracode scanning'
-                withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
-                    veracode applicationName: 'Verademo Java', createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/target/**.zip,**/target/*.war', vid: veracode_id, vkey: veracode_key
-                }
-            }
-        }
-
-        stage ('Veracode scan') {
+        stage ('Veracode Scan') {
             steps {
                 script {
                     if(isUnix() == true) {
@@ -69,18 +60,35 @@ pipeline {
                         env.HOST_OS = 'Windows'
                     }
                 }
-
                 echo 'Veracode scanning'
-                withCredentials([ usernamePassword ( 
-                    credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_ID', passwordVariable: 'VERACODE_API_KEY') ]) {
-                        // fire-and-forget 
-                        veracode applicationName: "${VERACODE_APP_NAME}", criticality: 'VeryHigh', debug: true, fileNamePattern: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'Jenkins-${BUILD_NUMBER}', uploadExcludesPattern: '', uploadIncludesPattern: 'app/target/verademo.war', vid: "${VERACODE_API_ID}", vkey: "${VERACODE_API_KEY}"
-
-                        // wait for scan to complete (timeout: x)
-                        //veracode applicationName: '${VERACODE_APP_NAME}'', criticality: 'VeryHigh', debug: true, timeout: 20, fileNamePattern: '', pHost: '', pPassword: '', pUser: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: "${BUILD_TAG}", uploadExcludesPattern: '', uploadIncludesPattern: 'target/verademo.war', vid: '${VERACODE_API_ID}', vkey: '${VERACODE_API_KEY}'
-                    }      
+                withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
+                    veracode applicationName: 'Verademo Java', createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/target/**.zip,**/target/*.war', vid: veracode_id, vkey: veracode_key
+                }
             }
         }
+
+        // stage ('Veracode scan') {
+        //     steps {
+        //         script {
+        //             if(isUnix() == true) {
+        //                 env.HOST_OS = 'Unix'
+        //             }
+        //             else {
+        //                 env.HOST_OS = 'Windows'
+        //             }
+        //         }
+
+        //         echo 'Veracode scanning'
+        //         withCredentials([ usernamePassword ( 
+        //             credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_ID', passwordVariable: 'VERACODE_API_KEY') ]) {
+        //                 // fire-and-forget 
+        //                 veracode applicationName: "${VERACODE_APP_NAME}", criticality: 'VeryHigh', debug: true, fileNamePattern: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'Jenkins-${BUILD_NUMBER}', uploadExcludesPattern: '', uploadIncludesPattern: 'app/target/verademo.war', vid: "${VERACODE_API_ID}", vkey: "${VERACODE_API_KEY}"
+
+        //                 // wait for scan to complete (timeout: x)
+        //                 //veracode applicationName: '${VERACODE_APP_NAME}'', criticality: 'VeryHigh', debug: true, timeout: 20, fileNamePattern: '', pHost: '', pPassword: '', pUser: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: "${BUILD_TAG}", uploadExcludesPattern: '', uploadIncludesPattern: 'target/verademo.war', vid: '${VERACODE_API_ID}', vkey: '${VERACODE_API_KEY}'
+        //             }      
+        //     }
+        // }
 
 // the above steps are the bare minimum.
 // below are some additional steps that are commonplace
