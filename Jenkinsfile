@@ -6,7 +6,7 @@ pipeline {
     agent any
 
     environment {
-        VERACODE_APP_NAME = 'Verademo'      // App Name in the Veracode Platform
+        VERACODE_APP_NAME = 'Verademo Java'      // App Name in the Veracode Platform
     }
 
     stages{
@@ -49,91 +49,92 @@ pipeline {
                 }
             }
         }
-
-        stage ('Veracode Scan') {
-            steps {
-                script {
-                    if(isUnix() == true) {
-                        env.HOST_OS = 'Unix'
-                    }
-                    else {
-                        env.HOST_OS = 'Windows'
-                    }
-                }
-                echo 'Veracode scanning'
-                withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
-                    veracode applicationName: 'Verademo Java', createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/target/**.zip,**/target/*.war', vid: veracode_id, vkey: veracode_key
-                }
-            }
-        }
-
-        // stage ('Veracode scan') {
-        //     steps {
-        //         script {
-        //             if(isUnix() == true) {
-        //                 env.HOST_OS = 'Unix'
-        //             }
-        //             else {
-        //                 env.HOST_OS = 'Windows'
-        //             }
-        //         }
-
-        //         echo 'Veracode scanning'
-        //         withCredentials([ usernamePassword ( 
-        //             credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_ID', passwordVariable: 'VERACODE_API_KEY') ]) {
-        //                 // fire-and-forget 
-        //                 veracode applicationName: "${VERACODE_APP_NAME}", criticality: 'VeryHigh', debug: true, fileNamePattern: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'Jenkins-${BUILD_NUMBER}', uploadExcludesPattern: '', uploadIncludesPattern: 'app/target/verademo.war', vid: "${VERACODE_API_ID}", vkey: "${VERACODE_API_KEY}"
-
-        //                 // wait for scan to complete (timeout: x)
-        //                 //veracode applicationName: '${VERACODE_APP_NAME}'', criticality: 'VeryHigh', debug: true, timeout: 20, fileNamePattern: '', pHost: '', pPassword: '', pUser: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: "${BUILD_TAG}", uploadExcludesPattern: '', uploadIncludesPattern: 'target/verademo.war', vid: '${VERACODE_API_ID}', vkey: '${VERACODE_API_KEY}'
-        //             }      
-        //     }
-        // }
-
-// the above steps are the bare minimum.
-// below are some additional steps that are commonplace
-
-        stage ('Veracode SCA') {
-            steps {
-                echo 'Veracode SCA'
-                withCredentials([ string(credentialsId: 'SCA_Token', variable: 'SRCCLR_API_TOKEN')]) {
-                    withMaven(maven:'maven-3') {
+        stage('Veracode AST') {
+            parallel {
+                stage ('Veracode Scan') {
+                    steps {
                         script {
                             if(isUnix() == true) {
-                                sh "curl -sSL https://download.sourceclear.com/ci.sh | sh -s -- scan app"
-
-                                // debug, no upload
-                                //sh "curl -sSL https://download.sourceclear.com/ci.sh | DEBUG=1 sh -s -- scan --no-upload"
+                                env.HOST_OS = 'Unix'
                             }
                             else {
-                                powershell '''
-                                            Set-ExecutionPolicy AllSigned -Scope Process -Force
-                                            $ProgressPreference = "silentlyContinue"
-                                            iex ((New-Object System.Net.WebClient).DownloadString('https://download.srcclr.com/ci.ps1'))
-                                            srcclr scan app
-                                            '''
+                                env.HOST_OS = 'Windows'
+                            }
+                        }
+                        echo 'Veracode scanning'
+                        withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
+                            veracode applicationName: 'Verademo Java', createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/target/**.zip,**/target/*.war', vid: veracode_id, vkey: veracode_key
+                        }
+                    }
+                }
+
+                // stage ('Veracode scan') {
+                //     steps {
+                //         script {
+                //             if(isUnix() == true) {
+                //                 env.HOST_OS = 'Unix'
+                //             }
+                //             else {
+                //                 env.HOST_OS = 'Windows'
+                //             }
+                //         }
+        
+                //         echo 'Veracode scanning'
+                //         withCredentials([ usernamePassword ( 
+                //             credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_ID', passwordVariable: 'VERACODE_API_KEY') ]) {
+                //                 // fire-and-forget 
+                //                 veracode applicationName: "${VERACODE_APP_NAME}", criticality: 'VeryHigh', debug: true, fileNamePattern: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'Jenkins-${BUILD_NUMBER}', uploadExcludesPattern: '', uploadIncludesPattern: 'app/target/verademo.war', vid: "${VERACODE_API_ID}", vkey: "${VERACODE_API_KEY}"
+        
+                //                 // wait for scan to complete (timeout: x)
+                //                 //veracode applicationName: '${VERACODE_APP_NAME}'', criticality: 'VeryHigh', debug: true, timeout: 20, fileNamePattern: '', pHost: '', pPassword: '', pUser: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: "${BUILD_TAG}", uploadExcludesPattern: '', uploadIncludesPattern: 'target/verademo.war', vid: '${VERACODE_API_ID}', vkey: '${VERACODE_API_KEY}'
+                //             }      
+                //     }
+                // }
+        
+
+                stage ('Veracode SCA') {
+                    steps {
+                        echo 'Veracode SCA'
+                        withCredentials([ string(credentialsId: 'SCA_Token', variable: 'SRCCLR_API_TOKEN')]) {
+                            withMaven(maven:'maven-3') {
+                                script {
+                                    if(isUnix() == true) {
+                                        sh "curl -sSL https://download.sourceclear.com/ci.sh | sh -s -- scan app"
+        
+                                        // debug, no upload
+                                        //sh "curl -sSL https://download.sourceclear.com/ci.sh | DEBUG=1 sh -s -- scan --no-upload"
+                                    }
+                                    else {
+                                        powershell '''
+                                                    Set-ExecutionPolicy AllSigned -Scope Process -Force
+                                                    $ProgressPreference = "silentlyContinue"
+                                                    iex ((New-Object System.Net.WebClient).DownloadString('https://download.srcclr.com/ci.ps1'))
+                                                    srcclr scan app
+                                                    '''
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-        }
 
-        // Currently only works on *nix
-        stage ('Veracode container scan') {
-            steps {
-                echo 'Veracode container scanning'
-                withCredentials([ usernamePassword ( 
-                    credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_KEY_ID', passwordVariable: 'VERACODE_API_KEY_SECRET') ]) {
-                        script {
-                            if(isUnix() == true) {
-                                sh '''
-                                    curl -fsS https://tools.veracode.com/veracode-cli/install | sh
-                                    ./veracode scan --type directory --source . --format table
-                                    '''
+                // Currently only works on *nix
+                stage ('Veracode container scan') {
+                    steps {
+                        echo 'Veracode container scanning'
+                        withCredentials([ usernamePassword ( 
+                            credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_KEY_ID', passwordVariable: 'VERACODE_API_KEY_SECRET') ]) {
+                                script {
+                                    if(isUnix() == true) {
+                                        sh '''
+                                            curl -fsS https://tools.veracode.com/veracode-cli/install | sh
+                                            ./veracode scan --type directory --source . --format table
+                                            '''
+                                    }
+                                }
                             }
-                        }
                     }
+                }
             }
         }
     }
