@@ -95,8 +95,8 @@ pipeline {
                 stage ('Veracode SCA') {
                     steps {
                         echo 'Veracode SCA'
-                        withCredentials([ string(credentialsId: 'SCA_Token', variable: 'SRCCLR_API_TOKEN')]) {
-                            withMaven(maven:'maven-3') {
+                        withCredentials([ string(credentialsId: 'SRCCLR_API_TOKEN', variable: 'SRCCLR_API_TOKEN')]) {
+                            //withMaven(maven:'maven-3') {
                                 script {
                                     if(isUnix() == true) {
                                         sh "curl -sSL https://download.sourceclear.com/ci.sh | sh -s -- scan app"
@@ -113,7 +113,7 @@ pipeline {
                                                     '''
                                     }
                                 }
-                            }
+                            //}
                         }
                     }
                 }
