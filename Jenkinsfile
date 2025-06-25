@@ -121,14 +121,16 @@ pipeline {
                 stage ('Veracode Pipeline Scan') {
                     steps {
                         //Pipeline scan
-                        withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
-                            sh 'curl -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip'
-                            sh 'unzip -o pipeline-scan-LATEST.zip pipeline-scan.jar'
-                            sh '''java -jar pipeline-scan.jar -vid "$veracode_id" -vkey "$veracode_key" --file app/target/verademo.war -sf pipeline_output.txt -so true'''
-                            sh '''echo <section name="Veracode Pipeline Scan results" fontcolor=""><field 
-                                    name="Veracode" titlecolor="black" value="Pipeline Scan Results" 
-                                    detailcolor="#000000" href="artifact/pipeline_output.txt"> <![CDATA[ 
-                                    ]]></field></section>' > pipeline.xml'''
+                        catchError {
+                            withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
+                                sh 'curl -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip'
+                                sh 'unzip -o pipeline-scan-LATEST.zip pipeline-scan.jar'
+                                sh '''java -jar pipeline-scan.jar -vid "$veracode_id" -vkey "$veracode_key" --file app/target/verademo.war -sf pipeline_output.txt -so true'''
+                                sh '''echo <section name="Veracode Pipeline Scan results" fontcolor=""><field 
+                                        name="Veracode" titlecolor="black" value="Pipeline Scan Results" 
+                                        detailcolor="#000000" href="artifact/pipeline_output.txt"> <![CDATA[ 
+                                        ]]></field></section>' > pipeline.xml'''
+                            }
                         }
                         archiveArtifacts artifacts: 'pipeline_output.txt', followSymlinks: false
                         archiveArtifacts artifacts: 'pipeline.xml', followSymlinks: false
