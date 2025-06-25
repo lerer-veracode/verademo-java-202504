@@ -63,7 +63,7 @@ pipeline {
                         }
                         echo 'Veracode scanning'
                         withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
-                            veracode applicationName: 'Verademo Java', createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/target/**.zip,**/target/*.war', vid: veracode_id, vkey: veracode_key
+                            veracode applicationName: 'Verademo Java', timeout: 10, createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/target/**.zip,**/target/*.war', vid: veracode_id, vkey: veracode_key
                         }
                     }
                 }
@@ -126,12 +126,12 @@ pipeline {
                                 sh 'curl -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip'
                                 sh 'unzip -o pipeline-scan-LATEST.zip pipeline-scan.jar'
                                 sh '''java -jar pipeline-scan.jar -vid "$veracode_id" -vkey "$veracode_key" --file app/target/verademo.war -sf pipeline_output.txt -so true'''
-                                sh '''echo <section name="Veracode Pipeline Scan results" fontcolor=""><field 
-                                        name="Veracode" titlecolor="black" value="Pipeline Scan Results" 
-                                        detailcolor="#000000" href="artifact/pipeline_output.txt"> <![CDATA[ 
-                                        ]]></field></section>' > pipeline.xml'''
                             }
                         }
+                        sh '''echo <section name="Veracode Pipeline Scan results" fontcolor=""><field 
+                                name="Veracode" titlecolor="black" value="Pipeline Scan Results" 
+                                detailcolor="#000000" href="artifact/pipeline_output.txt"> <![CDATA[ 
+                                ]]></field></section>' > pipeline.xml'''
                         archiveArtifacts artifacts: 'pipeline_output.txt', followSymlinks: false
                         archiveArtifacts artifacts: 'pipeline.xml', followSymlinks: false
                         
@@ -142,8 +142,8 @@ pipeline {
                 stage ('Veracode container scan') {
                     steps {
                         echo 'Veracode container scanning'
-                        withCredentials([ usernamePassword ( 
-                            credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_KEY_ID', passwordVariable: 'VERACODE_API_KEY_SECRET') ]) {
+                        withCredentials([usernamePassword(
+                            credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
                                 script {
                                     if(isUnix() == true) {
                                         sh '''
