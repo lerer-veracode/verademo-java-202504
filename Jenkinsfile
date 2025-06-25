@@ -130,6 +130,9 @@ pipeline {
                                     detailcolor="#000000" href="artifact/pipeline_output.txt"> <![CDATA[ 
                                     ]]></field></section>' > pipeline.xml'''
                         }
+                        archiveArtifacts artifacts: 'pipeline_output.txt', followSymlinks: false
+                        archiveArtifacts artifacts: 'pipeline.xml', followSymlinks: false
+                        
                     }
                 }
 
