@@ -118,6 +118,17 @@ pipeline {
                     }
                 }
 
+                stage ('Veracode Pipeline Scan') {
+                    steps {
+                        //Pipeline scan
+                        withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
+                            sh 'curl -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip'
+                            sh 'unzip -o pipeline-scan-LATEST.zip pipeline-scan.jar'
+                            sh '''java -jar pipeline-scan.jar -vid "$veracode_id" -vkey "$veracode_key" --file app/target/verademo.war'''
+                        }
+                    }
+                }
+
                 // Currently only works on *nix
                 stage ('Veracode container scan') {
                     steps {
