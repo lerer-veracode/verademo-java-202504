@@ -63,34 +63,11 @@ pipeline {
                         }
                         echo 'Veracode scanning'
                         withCredentials([usernamePassword(credentialsId: 'Veracode-API-credentials', passwordVariable: 'veracode_key', usernameVariable: 'veracode_id')]) {
-                            veracode applicationName: 'Verademo Java', timeout: 10, createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/target/**.zip,**/target/*.war', vid: veracode_id, vkey: veracode_key
+                            veracode applicationName: 'Verademo Java', createSandbox: true, criticality: 'High', debug: true, deleteIncompleteScanLevel: '1', fileNamePattern: '', includenewmodules: true, replacementPattern: '', sandboxName: 'Jenkins', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'build $buildnumber - Jenkins', scanallnonfataltoplevelmodules: true, teams: '', uploadIncludesPattern: '**/target/**.zip,**/target/*.war', vid: veracode_id, vkey: veracode_key
                         }
+                        // Add timeout: X to the param list for waif for completion
                     }
                 }
-
-                // stage ('Veracode scan') {
-                //     steps {
-                //         script {
-                //             if(isUnix() == true) {
-                //                 env.HOST_OS = 'Unix'
-                //             }
-                //             else {
-                //                 env.HOST_OS = 'Windows'
-                //             }
-                //         }
-        
-                //         echo 'Veracode scanning'
-                //         withCredentials([ usernamePassword ( 
-                //             credentialsId: 'veracode_login', usernameVariable: 'VERACODE_API_ID', passwordVariable: 'VERACODE_API_KEY') ]) {
-                //                 // fire-and-forget 
-                //                 veracode applicationName: "${VERACODE_APP_NAME}", criticality: 'VeryHigh', debug: true, fileNamePattern: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: 'Jenkins-${BUILD_NUMBER}', uploadExcludesPattern: '', uploadIncludesPattern: 'app/target/verademo.war', vid: "${VERACODE_API_ID}", vkey: "${VERACODE_API_KEY}"
-        
-                //                 // wait for scan to complete (timeout: x)
-                //                 //veracode applicationName: '${VERACODE_APP_NAME}'', criticality: 'VeryHigh', debug: true, timeout: 20, fileNamePattern: '', pHost: '', pPassword: '', pUser: '', replacementPattern: '', sandboxName: '', scanExcludesPattern: '', scanIncludesPattern: '', scanName: "${BUILD_TAG}", uploadExcludesPattern: '', uploadIncludesPattern: 'target/verademo.war', vid: '${VERACODE_API_ID}', vkey: '${VERACODE_API_KEY}'
-                //             }      
-                //     }
-                // }
-        
 
                 stage ('Veracode SCA') {
                     steps {
@@ -128,12 +105,7 @@ pipeline {
                                 sh '''java -jar pipeline-scan.jar -vid "$veracode_id" -vkey "$veracode_key" --file app/target/verademo.war -sf pipeline_output.txt -so true'''
                             }
                         }
-                        // sh '''echo <section name="Veracode Pipeline Scan results" fontcolor=""><field 
-                        //         name="Veracode" titlecolor="black" value="Pipeline Scan Results" 
-                        //         detailcolor="#000000" href="artifact/pipeline_output.txt"> <![CDATA[ 
-                        //         ]]></field></section>' > pipeline.xml'''
                         archiveArtifacts artifacts: 'pipeline_output.txt', followSymlinks: false
-                        // archiveArtifacts artifacts: 'pipeline.xml', followSymlinks: false
                         
                     }
                 }
