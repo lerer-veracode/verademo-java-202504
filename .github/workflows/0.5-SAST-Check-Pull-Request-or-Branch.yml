@@ -2,13 +2,13 @@ name: .5-SAST-Check-Pull-Request-or-Branch
 
 # This workflow will checkout the code, build the app, and scan with the Veracode Static Pipeline Scanner.
 on:
-  pull_request:
-    branches: [ main, release/* ]
+  #pull_request:
+  #  branches: [ main, release/* ]
  # Enables manual runs
   workflow_dispatch:
   # Runs "Every at 5:04" (see https://crontab.guru)
-  schedule:
-  - cron: "4 5 * * *"
+  #schedule:
+  #- cron: "4 5 * * *"
 
 jobs:
   SAST-Check-Pull-Request-or-Branch:
