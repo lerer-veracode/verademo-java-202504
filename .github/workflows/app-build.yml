@@ -1,0 +1,46 @@
+name: Veracode Application Build based on programming language
+
+on:
+  workflow_call:
+    inputs:
+      build-tool:
+        description: Choice of build tool for building the application
+        required: false
+        type: string
+      build-tool-version:
+        description: Build tool version
+        required: false
+        type: string
+      programming-language:
+        description: The language for building the application
+        required: true
+        type: string
+      programming-language-distribution:
+        description: The language distribution for building the application
+        required: false
+        type: string
+      programming-language-version:
+        description: The language version for building the application
+        required: false
+        type: string
+
+jobs:
+  # ===================================
+  # Veracode Build and Upload Workflow
+  # ===================================
+  app-zip:
+    name: Application Zip
+    if: inputs.programming-language == 'javascript' || inputs.programming-language == 'python'
+    uses: ./.github/workflows/qf/app-zip.yml
+    secrets: inherit
+
+  app-package:
+    name: Application Package
+    if: inputs.programming-language == 'java' || inputs.programming-language == 'go' || inputs.programming-language == 'ruby'
+    uses: ./.github/workflows/qf/app-package.yml
+    secrets: inherit
+    with:
+      build-tool: ${{ inputs.build-tool }}
+      build-tool-version: ${{ inputs.build-tool-version }}
+      programming-language: ${{ inputs.programming-language }}
+      programming-language-version: ${{ inputs.programming-language-version }}
