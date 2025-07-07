@@ -1,10 +1,10 @@
-name: "Customer Code Security Check Workflow"
+name: Customer Code Security Check Workflow
 
 run-name: Customer Code Security Check - ${{ github.repository }}
 
 on:
   workflow_dispatch:
-  workflow_call:
+  ##workflow_call:
     inputs:
       application-name:
         description: Application name to deploy
