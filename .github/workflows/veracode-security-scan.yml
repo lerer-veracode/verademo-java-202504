@@ -1,0 +1,130 @@
+name: "Customer Code Security Check Workflow"
+
+run-name: Customer Code Security Check - ${{ github.repository }}
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      application-name:
+        description: Application name to deploy
+        required: true
+        type: string
+      build-tool:
+        description: Choice of build tool for building the application
+        required: true
+        type: string
+      build-tool-version:
+        description: Choice of build tool version for building the application
+        required: false
+        type: string
+      channel:
+        description: Channel code of the application
+        required: true
+        type: string
+      policy-name:
+        description: The name of the Veracode policy to apply
+        required: false
+        default: Qantas Group Policy
+        type: string
+      programming-language:
+        description: The language for building the application
+        required: true
+        type: string
+      programming-language-distribution:
+        description: The language distribution for building the application
+        required: true
+        type: string
+      programming-language-version:
+        description: The language version for building the application
+        required: false
+        type: string
+      run-codeql-scan:
+        description: Whether to run the codeql scan or not
+        required: false
+        default: true
+        type: boolean
+      run-veracode-policy-scan:
+        description: Whether to run the veracode policy scan or not
+        required: false
+        default: true
+        type: boolean
+      run-veracode-pipeline-scan:
+        description: Whether to run the veracode pipeline scan or not
+        required: false
+        default: true
+        type: boolean
+      run-veracode-sca-scan:
+        description: Whether to run the veracode sca scan or not
+        required: false
+        default: true
+        type: boolean
+      veracode-sca-workspace:
+        description: >
+          The SCA workspace name in lower case. If an invalid value is provided the workflow will pass SRCCLR_WORKSPACE_SLUG as
+          empty to Veracode and fail with 'You are using an organization-level agent and must specify a workspace'.
+          For now 'default' is a valid value for those channels or teams that don't yet have a separate workspace.
+        required: false
+        # TODO right now everyone is in the same workspace, at some point we'll multiplex by channel
+        # and this will be empty by default.
+        default: "default"
+        type: string
+
+jobs:
+  # ==================================
+  # Build Application
+  # ==================================
+  veracode-application-build:
+    name: Veracode Application Build
+    if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && (inputs.run-veracode-policy-scan || inputs.run-veracode-pipeline-scan)
+    uses: ./.github/workflows/app-build.yml
+    secrets: inherit
+    with:
+      build-tool: ${{ inputs.build-tool }}
+      build-tool-version: ${{ inputs.build-tool-version }}
+      programming-language: ${{ inputs.programming-language }}
+      programming-language-distribution: ${{ inputs.programming-language-distribution }}
+      programming-language-version: ${{ inputs.programming-language-version }}
+
+  # ==================================
+  # Veracode policy scan
+  # ==================================
+  veracode-policy-scan:
+    name: Veracode Policy Scan
+    needs: veracode-application-build
+    if: inputs.run-veracode-policy-scan # if condition cannot be placed directly before needs
+    uses: ./.github/workflows/veracode-policy-scan.yml
+    secrets: inherit # required for the reusable workflow to access the secrets
+    with:
+      channel: ${{ inputs.channel }}
+      create-sandbox: ${{ (github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main') && true || false }}
+      sandbox-name: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/main' && github.ref_name || '' }}
+      policy-name: ${{ inputs.policy-name && inputs.policy-name || '' }}
+
+  # ==================================
+  # Veracode pipeline scan
+  # ==================================
+  veracode-pipeline-scan:
+    name: Veracode Pipeline Scan
+    needs: veracode-application-build
+    if: inputs.run-veracode-pipeline-scan
+    uses: ./.github/workflows/veracode-pipeline-scan.yml
+    secrets: inherit
+    with:
+      policy-name: ${{ inputs.policy-name && inputs.policy-name || '' }}
+
+  # ==================================
+  # Veracode SCA scan
+  # ==================================
+  veracode-sca-scan:
+    name: Veracode SCA Scan
+    if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && inputs.run-veracode-sca-scan
+    uses: ./.github/workflows/veracode-sca-scan.yml
+    secrets: inherit
+    with:
+      programming-language: ${{ inputs.programming-language }}
+      programming-language-version: ${{ inputs.programming-language-version }}
+      sca-workspace-name: ${{ inputs.veracode-sca-workspace }}
+
+  ### ADJUSTED FOR SHARING WITH VERACODE
+  # Removed non-Veracode workflows

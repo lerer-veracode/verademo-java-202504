@@ -1,0 +1,159 @@
+name: Veracode Application Package
+
+on:
+  workflow_call:
+    inputs:
+      build-tool:
+        description: Choice of build tool for building the application
+        required: false
+        type: string
+      build-tool-version:
+        description: Build tool version
+        required: false
+        type: string
+      programming-language:
+        description: The language for building the application
+        required: true
+        type: string
+      programming-language-version:
+        description: The language version for building the application
+        required: false
+        type: string
+
+permissions:
+  contents: read # Read files (commits, artifacts, releases)
+  id-token: write # Generate OIDC token (cloud auth)
+
+env:
+  go-version: ${{ inputs.programming-language == 'go' && inputs.programming-language-version || '1.21' }}
+  java-version: ${{ inputs.programming-language == 'java' && inputs.programming-language-version || '21' }}
+  maven-version: ${{ inputs.programming-language == 'java' && inputs.build-tool == 'maven' && inputs.build-tool-version || '3.9.9' }}
+
+jobs:
+  build:
+    name: Veracode Application Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.java-version }}
+          distribution: temurin
+          overwrite-settings: false
+
+      # ===================================
+      # Java Setup
+      # ===================================
+      # TODO External action, try to move to internal implementation
+      - name: Set up Maven
+        if: inputs.programming-language == 'java' && inputs.build-tool == 'maven'
+        ### ADJUSTED FOR SHARING WITH VERACODE
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: ${{ env.maven-version }}
+
+      ### ADJUSTED FOR SHARING WITH VERACODE
+      # Removed an action that automatically detects the java version from the build
+
+      - name: Install Java for the detected version
+        if: inputs.programming-language == 'java'
+        uses: actions/setup-java@v4
+        with:
+          java-version: "${{ env.java-version }}"
+          distribution: temurin
+          # Preserve the maven settings already configured
+          overwrite-settings: false
+
+      # ===================================
+      # Go Setup
+      # ===================================
+      - name: Set up Go
+        if: inputs.programming-language == 'go'
+        uses: actions/setup-go@v5.3.0
+        with:
+          go-version: ${{ env.go-version }}
+
+      - name: Set up github access
+        if: inputs.programming-language == 'go'
+        ### ADJUSTED FOR SHARING WITH VERACODE
+        run: |
+          echo "This would be an action that installs a git-authorised SSH key in the runner and configures the SSH agent"
+
+      - name: Configure GOPRIVATE
+        if: inputs.programming-language == 'go'
+        run: |
+          ### ADJUSTED FOR SHARING WITH VERACODE
+          go env -w GOPRIVATE=github.com/ORG1,github.com/ORG2
+
+      # ===================================
+      # Ruby Setup
+      # ===================================
+      - name: Set up Ruby
+        if: inputs.programming-language == 'ruby'
+        uses: ruby/setup-ruby@v1
+
+      - name: Install PostgreSQL's development headers
+        if: inputs.programming-language == 'ruby'
+        run: sudo apt update && sudo apt install -y libpq-dev
+
+      - name: Install veracode
+        if: inputs.programming-language == 'ruby'
+        run: bundle add veracode --source "https://rubygems.org"
+
+      - name: Veracode prepare
+        if: inputs.programming-language == 'ruby'
+        env:
+          DEBUG_FLAG: ${{ runner.debug == '1' && '--debug' || '' }}
+        run: bundle exec veracode prepare ${DEBUG_FLAG}
+
+      - name: Rename Veracode zip file
+        if: inputs.programming-language == 'ruby'
+        run: |
+          zip_file=$(ls ./tmp/veracode-*.zip | head -n 1)
+          if [[ -f "$zip_file" ]]; then
+            mv "$zip_file" veracode.zip
+          else
+            echo "No Veracode zip file found"
+          fi
+
+      # ===================================
+      # Veracode Package
+      # ===================================
+      - name: Ensure Veracode artifact directory exists
+        run: "mkdir ./veracode_artifacts"
+
+      - name: Install the Veracode CLI
+        if: inputs.programming-language != 'ruby'
+        ### ADJUSTED FOR SHARING WITH VERACODE
+        run: "echo install the veracode CLI as per https://docs.veracode.com/r/Install_the_Veracode_CLI?install-options=curl"
+
+      # See https://docs.veracode.com/r/veracode_package for explanation on flags
+      - name: Package the project
+        if: inputs.programming-language != 'ruby'
+        env:
+          DEBUG_FLAG: ${{ runner.debug == '1' && '--debug' || '' }}
+          # NOTE: These 2 secrets below are needed because some projects use those env vars to download packages from private repos
+          GITHUB_USER: ${{ secrets.THE_GITHUB_USER }}
+          GITHUB_TOKEN: ${{ secrets.THE_GITHUB_TOKEN }}
+          PROGRAMMING_LANGUAGE: ${{ inputs.programming-language }}
+          # Needed because the private access to Github is done using SSH keys with an agent that's running on that socket
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          # Workaround to make veracode package not use any makefile present in the repo
+          SRCCLR_MAKE_FILES: "file-name-that-does-not-exist"
+        run: |
+          veracode package --source . --type directory --trust --output veracode_artifacts ${DEBUG_FLAG}
+          cd veracode_artifacts
+          if [ "$PROGRAMMING_LANGUAGE" == "go" ]; then
+            find . -name "*client-go.zip" -delete
+            cp *-go.zip "$OLDPWD/veracode.zip"
+          else
+            zip -r "$OLDPWD/veracode.zip" .
+          fi
+
+      # Upload the artifacts for further use of Veracode scans
+      - uses: actions/upload-artifact@v4
+        with:
+          name: veracode-artifact
+          path: ./veracode.zip
