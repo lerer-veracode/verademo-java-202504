@@ -31,13 +31,13 @@ jobs:
   app-zip:
     name: Application Zip
     if: inputs.programming-language == 'javascript' || inputs.programming-language == 'python'
-    uses: ./.github/workflows/qf/app-zip.yml
+    uses: ./.github/workflows/app-zip.yml
     secrets: inherit
 
   app-package:
     name: Application Package
     if: inputs.programming-language == 'java' || inputs.programming-language == 'go' || inputs.programming-language == 'ruby'
-    uses: ./.github/workflows/qf/app-package.yml
+    uses: ./.github/workflows/app-package.yml
     secrets: inherit
     with:
       build-tool: ${{ inputs.build-tool }}
