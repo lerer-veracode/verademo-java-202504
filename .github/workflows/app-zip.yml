@@ -1,0 +1,27 @@
+name: Veracode Application Zip
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    name: Veracode Application Zip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          overwrite-settings: false
+
+      - name: Create zip archive
+        run: zip -r ./veracode.zip . -x .git/**\*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: veracode-artifact
+          path: ./veracode.zip
