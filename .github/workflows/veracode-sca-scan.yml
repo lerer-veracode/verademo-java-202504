@@ -139,7 +139,7 @@ jobs:
           # The IDs can be obtained from the browser URL when visiting the workspace
           SRCCLR_WORKSPACE_SLUG: >
             ${{ fromJson('{
-              "default": "ws-id-1",
+              "default": "3OOuA7rR",
               "ws-1": "ws-id-1",
               "ws-2": "ws-id-2"
             }')[inputs.sca-workspace-name || 'default'] }}
