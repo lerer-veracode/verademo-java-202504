@@ -1,0 +1,111 @@
+name: Veracode Pipeline Scan
+
+on:
+  workflow_call:
+    inputs:
+      apply-policy:
+        description: Whether to apply the Qantas Group Policy
+        required: false
+        default: false
+        type: boolean
+      fail-build:
+        description: Fail the build upon findings. Subject to the fail-on-severity and apply-policy parameters
+        required: false
+        default: false
+        type: boolean
+      fail-on-severity:
+        description: |
+          Fail the pipeline job if the scan finds flaws of the specified severities.
+          Enter a comma-separated list of severities in quotation marks. If 'apply-policy' is true then this parameter
+          is ignored.
+          Possible values are shown here: https://docs.veracode.com/r/r_pipeline_scan_commands#parameters
+          Default is 'Very High,High'
+        required: false
+        type: string
+        default: "Very High,High"
+      upload-sarif:
+        description: Whether to upload the Pipeline scan results into the GitHub repository as a SARIF file
+        required: false
+        default: true
+        type: boolean
+      policy-name:
+        description: The name of the Veracode policy to apply
+        required: false
+        default: "Qantas Group Policy"
+        type: string
+
+jobs:
+  pipeline_scan:
+    runs-on: ubuntu-latest
+    name: Veracode Pipeline Scan
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java for Veracode Pipeline Scan
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          overwrite-settings: false
+
+      - name: Get archive from build workflow
+        id: download-built-artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: veracode-artifact
+          path: ./veracode_pipeline_artifact_directory
+
+      # Creates results.json: contains all findings- both existing and new flaws
+      # Creates filtered_results.json: retains findings from results.json that violate the policy regardless of mitigation status
+      - name: Veracode Pipeline-Scan
+        id: pipeline-scan
+        uses: veracode/veracode-pipeline-scan-action@v1.0.16
+        # see https://docs.veracode.com/r/r_pipeline_scan_commands and https://github.com/veracode/Veracode-pipeline-scan-action
+        with:
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+          file: "${{ steps.download-built-artifact.outputs.download-path }}/veracode.zip"
+          veracode_policy_name: "${{ inputs.apply-policy && inputs.policy-name || '' }}"
+          fail_build: ${{ inputs.fail-build }}
+          # Veracode action isn't properly quoting input, so we need to enforce it for now
+          # If apply-policy is true we must provide this as blank
+          fail_on_severity: '${{ !inputs.apply-policy && format(''"{0}"'', inputs.fail-on-severity) || '''' }}'
+          json_output: true
+          json_output_file: results.json
+
+      # Creates pipeline_scan_flaw_filter.json: retains unmitigated findings from results.json
+      # Fail if remaining flaws violate the policy
+      - name: Veracode Pipeline Results
+        if: always()
+        id: prepare-results
+        uses: veracode/github-actions-integration-helper@main
+        with:
+          action: "preparePipelineResults"
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+          appname: ${{ github.event.repository.full_name }}
+          workflow_app: false
+          pipeline_scan_flaw_filter: 
+          fail_checks_on_policy: true
+
+      - name: Convert pipeline scan output to SARIF format
+        if: always() && hashFiles('./pipeline_scan_flaw_filter.json')
+        id: convert
+        uses: veracode/veracode-pipeline-scan-results-to-sarif@v2.0.4
+        with:
+          scan-type: pipeline
+          pipeline-results-json: pipeline_scan_flaw_filter.json
+          output-results-sarif: veracode-results.sarif
+          noupload: true
+
+      # To allow troubleshooting by analysing the file composition
+      - name: Upload Veracode sarif file to Summary
+        if: always() && hashFiles('./veracode-results.sarif')
+        uses: actions/upload-artifact@v4
+        with:
+          name: veracode_sarif_file
+          path: veracode-results.sarif
+
+      ### ADJUSTED FOR SHARING WITH VERACODE
+      # here we usually have an action that enriches the sarif and then uploads to the code scanning API

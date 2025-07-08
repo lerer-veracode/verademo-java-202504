@@ -1,0 +1,161 @@
+name: Veracode Software Composition Analysis
+
+on:
+  workflow_call:
+    inputs:
+      programming-language:
+        description: The language for building the application
+        required: true
+        type: string
+      programming-language-version:
+        description: The language version for building the application
+        required: false
+        type: string
+      sca-workspace-name:
+        description: The workspace name in lowercase. If you're uncertain, use "default".
+        # Since they're "ugly" codes, maybe we can interpolate the channel name into a param name to get a config from secrets manager/github
+        # QL SCA Github workspace. For now we're translating in a JSON map below
+        required: false
+        default: "default"
+        type: string
+
+permissions:
+  contents: read # Read files (commits, artifacts, releases)
+  id-token: write # Generate OIDC token (cloud auth)
+
+jobs:
+  veracode-sca-scan:
+    runs-on: ubuntu-latest 
+    name: Veracode SCA Scan
+    env:
+      java_version: ${{ inputs.programming-language == 'java' && inputs.programming-language-version || '21' }}
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Set up Java for Veracode SCA Scan
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.java_version }}
+          distribution: temurin
+          overwrite-settings: false
+
+      # ===================================
+      # NodeJS Setup
+      # ===================================
+      - name: Setup NodeJS
+        if: inputs.programming-language == 'javascript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.programming-language-version }}
+
+      # ===================================
+      # Python Setup
+      # ===================================
+      - name: Get the python version from the Pipfile
+        if: inputs.programming-language == 'python'
+        run: echo "PY_VER=$(cat Pipfile | grep python_version | tr -d -c 0-9.)" >> $GITHUB_ENV
+
+      - name: Check the Python version was set by Pipfile, if not set a default
+        if: inputs.programming-language == 'python' && env.PY_VER == ''
+        run: echo "PY_VER=3.11.8" >> $GITHUB_ENV
+
+      - uses: actions/setup-python@v5
+        if: inputs.programming-language == 'python'
+        with:
+          python-version: ${{ env.PY_VER }}
+
+      - name: Check for poetry.lock
+        if: inputs.programming-language == 'python'
+        id: check-poetry
+        run: |
+          if [ -f "poetry.lock" ]; then
+            echo "has_poetry=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Poetry with pip and install dependencies
+        if: inputs.programming-language == 'python' && steps.check-poetry.outputs.has_poetry == 'true'
+        run: |
+          pip install poetry
+          poetry install
+          poetry export -f requirements.txt --output requirements.txt
+
+      # Currently there is a bug in the Veracode srcclr where info are captured into stderr
+      # and causing parsing errors. To address this issue temporarily, removing the .env file
+      # in this step.
+      - name: Install pipenv and remove existing environment file
+        if: inputs.programming-language == 'python' && steps.check-poetry.outputs.has_poetry != 'true'
+        run: |
+          python -m pip install --upgrade pipenv==2024.2.0 wheel
+          if [ -f ".env" ]; then
+            rm .env
+          fi
+
+      # ===================================
+      # Go Setup
+      # ===================================
+      # Go v5 updates Node.js runtime from node16 to node20
+      # Deprecated warning message removed
+      - name: Set up Go
+        if: inputs.programming-language == 'go'
+        uses: actions/setup-go@v5.3.0
+        with:
+          go-version: ${{ inputs.programming-language-version }}
+
+      - name: Set up github access
+        if: inputs.programming-language == 'go'
+        ### ADJUSTED FOR SHARING WITH VERACODE
+        run: |
+          echo "This would be an action that installs a git-authorised SSH key in the runner and configures the SSH agent"
+
+      - name: Download dependencies
+        if: inputs.programming-language == 'go'
+        # Needed because the private access to Github is done using SSH keys with an agent that's running on that socket
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          go env -w GOPRIVATE=github.com/ORG1,github.com/ORG2
+          go mod download
+
+      # ===================================
+      # Ruby Setup
+      # ===================================
+      - name: Setup Ruby
+        if: inputs.programming-language == 'ruby'
+        uses: ruby/setup-ruby@v1
+
+      # ===================================
+      # Veracode SCA
+      # ===================================
+      - name: Run Veracode SCA
+        env:
+          # Org-level token
+          SRCCLR_API_TOKEN: ${{ secrets.VERACODE_ORG_SRCCLR_API_TOKEN }}
+          ### ADJUSTED FOR SHARING WITH VERACODE
+          # NOTE: These 2 secrets below are needed because some projects use those env vars to download packages from private repos
+          GITHUB_USER: ${{ secrets.THE_GITHUB_USER }}
+          GITHUB_TOKEN: ${{ secrets.THE_GITHUB_TOKEN }}
+          # This is an ugly implementation but for now its simplicity is worth it
+          # The IDs can be obtained from the browser URL when visiting the workspace
+          SRCCLR_WORKSPACE_SLUG: >
+            ${{ fromJson('{
+              "default": "ws-id-1",
+              "ws-1": "ws-id-1",
+              "ws-2": "ws-id-2"
+            }')[inputs.sca-workspace-name || 'default'] }}
+          # Needed because the private access to Github in Go builds is done using SSH keys with an agent that's running on that socket
+          SSH_AUTH_SOCK: ${{ inputs.programming-language == 'go' && '/tmp/ssh_agent.sock' || '' }}
+        uses: veracode/veracode-sca@v2.1.12
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          create-issues: false
+          debug: ${{ runner.debug == '1' && 'true' || 'false' }}
+          quick: false
+          allow-dirty: true
+          # At the moment there's no use case for using Makefiles instead of the default language build
+          # so we remove that 'noise'
+          skip-collectors: makefile
+
+      - name: Output SCA Scan Result if present
+        run: |
+          [[ ! -f scaResults.txt ]] || cat scaResults.txt
