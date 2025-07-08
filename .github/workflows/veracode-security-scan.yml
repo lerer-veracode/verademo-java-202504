@@ -11,9 +11,11 @@ on:
         required: true
         type: string
       build-tool:
+        type: choice
         description: Choice of build tool for building the application
         required: true
-        type: string
+        options: 
+        - maven
       build-tool-version:
         description: Choice of build tool version for building the application
         required: false
@@ -30,7 +32,13 @@ on:
       programming-language:
         description: The language for building the application
         required: true
-        type: string
+        type: choice
+        options:
+        - java
+        - go
+        - javascript
+        - python
+        - ruby
       programming-language-distribution:
         description: The language distribution for building the application
         required: true
@@ -42,22 +50,22 @@ on:
       run-codeql-scan:
         description: Whether to run the codeql scan or not
         required: false
-        default: true
+        default: false
         type: boolean
       run-veracode-policy-scan:
         description: Whether to run the veracode policy scan or not
         required: false
-        default: true
+        default: false
         type: boolean
       run-veracode-pipeline-scan:
         description: Whether to run the veracode pipeline scan or not
         required: false
-        default: true
+        default: false
         type: boolean
       run-veracode-sca-scan:
         description: Whether to run the veracode sca scan or not
         required: false
-        default: true
+        default: false
         type: boolean
       veracode-sca-workspace:
         description: >
