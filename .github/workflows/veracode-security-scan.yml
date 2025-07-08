@@ -1,10 +1,9 @@
-name: Customer Code Security Check Workflow
+name: Veracode Code Security Check Workflow
 
-run-name: Customer Code Security Check - ${{ github.repository }}
+# run-name: Customer Code Security Check - ${{ github.repository }}
 
 on:
   workflow_dispatch:
-  ##workflow_call:
     inputs:
       application-name:
         description: Application name to deploy
@@ -134,5 +133,3 @@ jobs:
       programming-language-version: ${{ inputs.programming-language-version }}
       sca-workspace-name: ${{ inputs.veracode-sca-workspace }}
 
-  ### ADJUSTED FOR SHARING WITH VERACODE
-  # Removed non-Veracode workflows
