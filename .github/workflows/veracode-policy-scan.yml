@@ -3,10 +3,6 @@ name: Veracode Policy Scan
 on:
   workflow_call:
     inputs:
-      channel:
-        description: The three letter acronym in lower case for the channel this application belongs to. Used to assign to the correct Veracode team.
-        required: true
-        type: string
       create-sandbox:
         description: Whether to create the sandbox if it does not exist
         required: false
@@ -78,4 +74,3 @@ jobs:
           deleteincompletescan: true
           sandboxname: ${{ env.sandbox-name }}
           createsandbox: ${{ env.create-sandbox }}
-          teams: "${{ inputs.channel && format('Qantas Loyalty - {0}', inputs.channel) || ''}}"
