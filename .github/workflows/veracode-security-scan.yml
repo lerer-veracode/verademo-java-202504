@@ -42,11 +42,6 @@ on:
         description: The language version for building the application
         required: false
         type: string
-      run-codeql-scan:
-        description: Whether to run the codeql scan or not
-        required: false
-        default: false
-        type: boolean
       run-veracode-policy-scan:
         description: Whether to run the veracode policy scan or not
         required: false
