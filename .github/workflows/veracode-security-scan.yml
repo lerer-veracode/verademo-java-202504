@@ -57,16 +57,17 @@ on:
         required: false
         default: false
         type: boolean
-      veracode-sca-workspace:
-        description: >
-          The SCA workspace name in lower case. If an invalid value is provided the workflow will pass SRCCLR_WORKSPACE_SLUG as
-          empty to Veracode and fail with 'You are using an organization-level agent and must specify a workspace'.
-          For now 'default' is a valid value for those channels or teams that don't yet have a separate workspace.
-        required: false
-        # TODO right now everyone is in the same workspace, at some point we'll multiplex by channel
-        # and this will be empty by default.
-        default: "default"
-        type: string
+      #veracode-sca-workspace:
+      #  description: >
+      #    The SCA workspace name in lower case. If an invalid value is provided the workflow will pass SRCCLR_WORKSPACE_SLUG as
+      #    empty to Veracode and fail with 'You are using an organization-level agent and must specify a workspace'.
+      #    For now 'default' is a valid value for those channels or teams that don't yet have a separate workspace.
+      #  required: false
+      #  # TODO right now everyone is in the same workspace, at some point we'll multiplex by channel
+      #  # and this will be empty by default.
+      #  default: "default"
+      #  type: string
+        
 
 jobs:
   # ==================================
@@ -121,5 +122,5 @@ jobs:
     with:
       programming-language: ${{ inputs.programming-language }}
       programming-language-version: ${{ inputs.programming-language-version }}
-      sca-workspace-name: ${{ inputs.veracode-sca-workspace }}
+      sca-workspace-name: "default"
 
