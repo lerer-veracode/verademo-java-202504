@@ -19,14 +19,10 @@ on:
         description: Choice of build tool version for building the application
         required: false
         type: string
-      channel:
-        description: Channel code of the application
-        required: true
-        type: string
       policy-name:
         description: The name of the Veracode policy to apply
         required: false
-        default: Qantas Group Policy
+        default: "Veracode Recommended High + SCA"
         type: string
       programming-language:
         description: The language for building the application
