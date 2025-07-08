@@ -38,10 +38,6 @@ on:
         - javascript
         - python
         - ruby
-      programming-language-distribution:
-        description: The language distribution for building the application
-        required: true
-        type: string
       programming-language-version:
         description: The language version for building the application
         required: false
@@ -90,7 +86,6 @@ jobs:
       build-tool: ${{ inputs.build-tool }}
       build-tool-version: ${{ inputs.build-tool-version }}
       programming-language: ${{ inputs.programming-language }}
-      programming-language-distribution: ${{ inputs.programming-language-distribution }}
       programming-language-version: ${{ inputs.programming-language-version }}
 
   # ==================================
