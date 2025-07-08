@@ -1,6 +1,6 @@
 name: Customer Code Security Check Workflow
 
-run-name: Customer Code Security Check - ${{ github.repository }}
+##run-name: Customer Code Security Check - ${{ github.repository }}
 
 on:
   workflow_dispatch:
