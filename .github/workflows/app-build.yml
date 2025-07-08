@@ -15,10 +15,6 @@ on:
         description: The language for building the application
         required: true
         type: string
-      programming-language-distribution:
-        description: The language distribution for building the application
-        required: false
-        type: string
       programming-language-version:
         description: The language version for building the application
         required: false
