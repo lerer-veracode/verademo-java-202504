@@ -45,7 +45,7 @@ jobs:
           appname: coby-cloud/a1689-eds-coby
           createprofile: true
           version: 16258152810-21
-          filepath: veracode_artifact_directory/veracode.zip
+          filepath: veracode_artifact_directory/veracode.war
           debug: 1
           scantimeout: 10
           deleteincompletescan: true
