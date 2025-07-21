@@ -39,11 +39,6 @@ jobs:
           name: scan-target
           path: veracode_artifact_directory
 
-      - name: list files
-        run: |
-          ls -l
-          cd veracode_artifact_directory
-          ls -l
       - name: upload and scan
         uses: veracode/uploadandscan-action@proxyQF
         with:
