@@ -2,6 +2,10 @@ name: Veracode Actions Testing workflow
 
 on:
   workflow_dispatch:
+
+env:
+  HTTP_PROXY: ${{ vars.HTTP_PROXY }}
+  HTTPS_PROXY: ${{ vars.HTTPS_PROXY }}
     
 jobs:
   checkout-and-package:
