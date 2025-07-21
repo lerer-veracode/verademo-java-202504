@@ -27,6 +27,23 @@ jobs:
           name: scan-target
           path: app/target/verademo.war
           if-no-files-found: warn
+          
+  after-upload:
+    needs: checkout-and-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: scan-target
+          path: veracode_artifact_directory
+      - name: check path
+        run: |
+          ls -la
+          pwd
+          cd veracode_artifact_directory
+          ls -la
+          pwd
 
   upload-and-scan:
     needs: checkout-and-package
@@ -45,7 +62,7 @@ jobs:
           appname: coby-cloud/a1689-eds-coby
           createprofile: true
           version: 16258152810-21
-          filepath: ./veracode_artifact_directory/veracode.war
+          filepath: 'veracode.war'
           debug: 1
           scantimeout: 10
           deleteincompletescan: true
