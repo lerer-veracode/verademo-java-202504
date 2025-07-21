@@ -22,10 +22,11 @@ jobs:
         run: mvn clean package
 
       - name: save artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: scan-target
           path: app/target/verademo.war
+          if-no-files-found: warn
 
   upload-and-scan:
     runs-on: ubuntu-latest
