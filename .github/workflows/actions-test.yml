@@ -1,0 +1,60 @@
+name: Veracode Actions Testing workflow
+
+on:
+  workflow_dispatch:
+    
+jobs:
+  checkout-and-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+    
+      - name: setup java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '8'
+    
+      - name: Build with Maven
+        working-directory: ./app/
+        run: mvn clean package
+
+      - name: save artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: scan-target
+          path: app/target/verademo.war
+
+  upload-and-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: scan-target
+          path: veracode_artifact_directory
+
+      - name: list files
+        run: |
+          ls -l
+          cd veracode_artifact_directory
+          ls -l
+      - name: upload and scan
+        uses: veracode/uploadandscan-action@proxyQF
+        with:
+          appname: coby-cloud/a1689-eds-coby
+          createprofile: true
+          version: 16258152810-21
+          filepath: ./veracode_artifact_directory/veracode.zip
+          debug: 1
+          scantimeout: 10
+          deleteincompletescan: true
+          createsandbox: false
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+
+
+
