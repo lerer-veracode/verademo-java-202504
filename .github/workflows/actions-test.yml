@@ -3,10 +3,6 @@ name: Veracode Actions Testing workflow
 on:
   workflow_dispatch:
 
-env:
-  HTTP_PROXY: ${{ vars.HTTP_PROXY }}
-  HTTPS_PROXY: ${{ vars.HTTPS_PROXY }}
-    
 jobs:
   checkout-and-package:
     runs-on: ubuntu-latest
@@ -62,6 +58,9 @@ jobs:
 
       - name: upload and scan
         uses: veracode/uploadandscan-action@proxyQF
+        env:
+          HTTP_PROXY: ${{ vars.HTTP_PROXY }}
+          HTTPS_PROXY: ${{ vars.HTTPS_PROXY }}
         with:
           appname: coby-cloud/a1689-eds-coby
           createprofile: true
