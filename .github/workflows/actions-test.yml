@@ -29,6 +29,7 @@ jobs:
           if-no-files-found: warn
 
   upload-and-scan:
+    needs: checkout-and-package
     runs-on: ubuntu-latest
 
     steps:
