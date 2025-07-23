@@ -62,7 +62,7 @@ jobs:
           HTTP_PROXY: ${{ vars.HTTP_PROXY }}
           HTTPS_PROXY: ${{ vars.HTTPS_PROXY }}
           PROXY_USER: ${{vars.PROXY_USER}}
-          PROXY_PASS: ${{secrets.PROXY_USER}}
+          PROXY_PASS: ${{secrets.PROXY_PASS}}
         with:
           appname: coby-cloud/a1689-eds-coby
           createprofile: true
