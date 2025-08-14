@@ -1,0 +1,22 @@
+name: Veracode Actions Testing workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  trim-sandboxes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: trim sandboxes
+        uses: veracode/github-actions-integration-helper@trim-sandboxes
+        with:
+          appname: 'test trim'
+          action: trim-sandboxes
+          debug: 1
+          trim_to_size: 4
+          vid: ${{ secrets.VERACODE_API_ID }}
+          vkey: ${{ secrets.VERACODE_API_KEY }}
+
+
+
