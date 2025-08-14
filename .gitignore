@@ -1,5 +1,8 @@
-app/target/
+app/target/*
 .vscode/*
-
+/package
+.idea/*
 # ignore things like results.json from a pipeline scan
 app/*.json      
+results.json
+filtered_results.json
