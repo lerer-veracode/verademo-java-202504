@@ -1,4 +1,4 @@
-name: Veracode Actions Testing workflow
+name: Testing Sandbox size triming workflow
 
 on:
   workflow_dispatch:
