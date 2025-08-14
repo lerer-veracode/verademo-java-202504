@@ -1,4 +1,4 @@
-name: Testing Sandbox size triming workflow
+name: Testing Sandbox size trimming workflow
 
 on:
   workflow_dispatch:
@@ -13,7 +13,6 @@ jobs:
         with:
           appname: 'test trim'
           action: trim-sandboxes
-          debug: 1
           trim_to_size: 4
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
