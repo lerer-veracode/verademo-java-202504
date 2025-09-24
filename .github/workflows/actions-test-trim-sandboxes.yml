@@ -13,7 +13,7 @@ jobs:
         with:
           appname: 'test trim'
           action: trim-sandboxes
-          trim_to_size: 4
+          trim_to_size: 2
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
 
