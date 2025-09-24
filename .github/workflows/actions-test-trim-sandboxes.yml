@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: trim sandboxes
-        uses: veracode/github-actions-integration-helper@trim-sandboxes
+        uses: veracode/github-actions-integration-helper@v0.1.8
         with:
           appname: 'test trim'
           action: trim-sandboxes
