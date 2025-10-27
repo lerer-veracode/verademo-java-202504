@@ -18,6 +18,10 @@ jobs:
           trim_to_size: 2
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
+      - name: print outputs
+        run: |
+          echo "Outcome: ${{ steps.my-trim.outcome }}"
+          echo "Error Message: ${{ steps.my-trim.outputs.error_message }}"
       - name: Handle Specific Error
         if: steps.my-trim.outcome != 'success' && contains(steps.my-trim.outputs.error_message, 'No application found with name')
         run: |
