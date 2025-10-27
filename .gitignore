@@ -6,3 +6,4 @@ app/target/*
 app/*.json      
 results.json
 filtered_results.json
+.verascan/*
