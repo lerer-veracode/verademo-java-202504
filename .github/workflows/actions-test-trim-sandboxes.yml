@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: trim sandboxes
+      - name: Trim Sandboxes  
         id: my-trim
         continue-on-error: true
         uses: veracode/github-actions-integration-helper@v0.1.8
@@ -19,7 +19,7 @@ jobs:
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
       - name: Handle Specific Error
-        if: steps.my-trim.outcome != 'success' && contains(steps.my-trim.outputs.error_message, 'Specific Error Text')
+        if: steps.my-trim.outcome != 'success' && contains(steps.my-trim.outputs.error_message, 'No application found with name')
         run: |
           echo “ignoring errors of Profile doesn’t exist”
           
