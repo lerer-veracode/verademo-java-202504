@@ -9,13 +9,20 @@ jobs:
 
     steps:
       - name: trim sandboxes
+        id: my-trim
+        continue-on-error: true
         uses: veracode/github-actions-integration-helper@v0.1.8
         with:
-          appname: 'test trim'
+          appname: 'does not exist'
           action: trim-sandboxes
           trim_to_size: 2
           vid: ${{ secrets.VERACODE_API_ID }}
           vkey: ${{ secrets.VERACODE_API_KEY }}
+      - name: Handle Specific Error
+        if: steps.my-trim.outcome != 'success' && contains(steps.my-trim.outputs.error_message, 'Specific Error Text')
+        run: |
+          echo “ignoring errors of Profile doesn’t exist”
+          
 
 
 
